@@ -5,34 +5,62 @@ import 'screens/priority_matrix.dart';
 import 'screens/timer_screen.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
+  
+  // Open the local offline boxes
   await Hive.openBox('resources');
   await Hive.openBox('dates');
-  runApp(MaterialApp(
-    theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo),
-    home: MainNav(),
-  ));
+  
+  runApp(StudyApp());
 }
 
-class MainNav extends StatefulWidget {
+class StudyApp extends StatelessWidget {
   @override
-  _MainNavState createState() => _MainNavState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.indigo,
+      ),
+      home: MainNavigation(),
+    );
+  }
 }
 
-class _MainNavState extends State<MainNav> {
-  int _idx = 0;
-  final _p = [HomeScreen(), PriorityMatrixScreen(), TimerScreen()];
+class MainNavigation extends StatefulWidget {
+  @override
+  _MainNavigationState createState() => _MainNavigationState();
+}
+
+class _MainNavigationState extends State<MainNavigation> {
+  int _currentIndex = 0;
+
+  // The 3 main screens of your app
+  final List<Widget> _pages = [
+    HomeScreen(),
+    PriorityMatrixScreen(),
+    TimerScreen(),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _p[_idx],
+      body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _idx,
-        onTap: (i) => setState(() => _idx = i),
+        currentIndex: _currentIndex,
+        selectedItemColor: Colors.indigo,
+        unselectedItemColor: Colors.grey,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
         items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Dash"),
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: "Priority"),
-          BottomNavigationBarItem(icon: Icon(Icons.timer), label: "Timer"),
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: "Dash"),
+          BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: "Agenda"),
+          BottomNavigationBarItem(icon: Icon(Icons.timer), label: "Focus"),
         ],
       ),
     );
