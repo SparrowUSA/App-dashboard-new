@@ -12,51 +12,49 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var resourceBox = Hive.box('resources');
-    var filtered = resourceBox.values.where((r) => r['uni'] == selectedUni).toList();
+    var resBox = Hive.box('resources');
+    var filtered = resBox.values.where((r) => r['uni'] == selectedUni).toList();
 
     return Scaffold(
       appBar: AppBar(
         title: Text(selectedUni),
         actions: [
           PopupMenuButton<String>(
-            onSelected: (val) => setState(() => selectedUni = val),
-            itemBuilder: (context) => [
-              PopupMenuItem(value: "University A", child: Text("Uni A")),
-              PopupMenuItem(value: "University B", child: Text("Uni B")),
-            ],
+            onSelected: (v) => setState(() => selectedUni = v),
+            itemBuilder: (ctx) => [PopupMenuItem(value: "University A", child: Text("Uni A")), PopupMenuItem(value: "University B", child: Text("Uni B"))],
           )
         ],
       ),
-      body: filtered.isEmpty 
-          ? Center(child: Text("No links yet for $selectedUni"))
-          : ListView.builder(
-              itemCount: filtered.length,
-              itemBuilder: (context, index) {
-                final item = filtered[index];
-                return HyperlinkCard(upwrite: item['upwrite'], url: item['url'], subject: item['subject']);
-              },
-            ),
+      body: filtered.isEmpty ? Center(child: Text("Empty Dash")) : ListView.builder(
+        itemCount: filtered.length,
+        itemBuilder: (ctx, i) => HyperlinkCard(upwrite: filtered[i]['upwrite'], url: filtered[i]['url'], subject: filtered[i]['subject']),
+      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _addResource(context),
+        onPressed: () => _showAddDialog(context),
         child: Icon(Icons.add),
       ),
     );
   }
 
-  void _addResource(BuildContext context) {
+  void _showAddDialog(BuildContext context) {
     final sC = TextEditingController(); final uC = TextEditingController(); final lC = TextEditingController();
-    showDialog(context: context, builder: (context) => AlertDialog(
-      title: Text("Add Resource"),
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      title: Text("Add Resource/Exam"),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
         TextField(controller: sC, decoration: InputDecoration(hintText: "Subject")),
-        TextField(controller: uC, decoration: InputDecoration(hintText: "Upwrite (Notes)")),
-        TextField(controller: lC, decoration: InputDecoration(hintText: "Paste URL")),
+        TextField(controller: uC, decoration: InputDecoration(hintText: "Upwrite / Exam Title")),
+        TextField(controller: lC, decoration: InputDecoration(hintText: "URL (Leave blank for Exam)")),
       ]),
-      actions: [ElevatedButton(onPressed: () {
-        Hive.box('resources').add({'uni': selectedUni, 'subject': sC.text, 'upwrite': uC.text, 'url': lC.text});
-        Navigator.pop(context); setState(() {});
-      }, child: Text("Save Offline"))],
+      actions: [
+        TextButton(onPressed: () { // Save as Exam
+          Hive.box('dates').add({'uni': selectedUni, 'subject': sC.text, 'title': uC.text, 'date': DateTime.now().add(Duration(days: 7))});
+          Navigator.pop(ctx); setState(() {});
+        }, child: Text("Add as Exam")),
+        ElevatedButton(onPressed: () { // Save as Link
+          Hive.box('resources').add({'uni': selectedUni, 'subject': sC.text, 'upwrite': uC.text, 'url': lC.text});
+          Navigator.pop(ctx); setState(() {});
+        }, child: Text("Save Link")),
+      ],
     ));
   }
 }
