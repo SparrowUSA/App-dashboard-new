@@ -1,34 +1,19 @@
-name: Build Android APK
-
+name: Build and Deploy Web
 on:
   push:
-    branches: [ "main" ] # Runs every time you push to the main branch
-
+    branches: [ main ]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4 # Gets your code from the repo
-
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-
-      - name: Get dependencies
-        run: flutter pub get
-
-      - name: Build APK
-        run: flutter build apk --release
-
-      - name: Upload APK
+      - run: flutter pub get
+      - run: flutter build web --release # Builds for browser instead of Android
+      - name: Upload Web Build
         uses: actions/upload-artifact@v4
         with:
-          name: study-dash-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: study-dash-web
+          path: build/web/
